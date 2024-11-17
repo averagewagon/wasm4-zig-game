@@ -17,31 +17,44 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-const std = @import("std");
 const w4 = @import("wasm4.zig");
 
-const smiley = [8]u8{
-    0b11000011,
-    0b10000001,
-    0b00100100,
-    0b00100100,
-    0b00000000,
-    0b00100100,
-    0b10011001,
-    0b11000011,
+// Menu items
+const menuItems = [_][]const u8{
+    "New Game",
+    "Load Game",
+    "Exit",
 };
+
+var selectedIndex: usize = 0;
 
 export fn start() void {}
 
 export fn update() void {
     w4.DRAW_COLORS.* = 2;
-    w4.text("Hello from Zig!", 10, 10);
 
-    const gamepad = w4.GAMEPAD1.*;
-    if (gamepad & w4.BUTTON_1 != 0) {
-        w4.DRAW_COLORS.* = 4;
+    // Draw the menu
+    drawMenu();
+}
+
+/// Draws a simple menu with selectable items.
+fn drawMenu() void {
+    const startX: i32 = 20;
+    const startY: i32 = 30;
+    const lineHeight: i32 = 12;
+
+    for (menuItems, 0..) |item, index| {
+        const yPos = startY + (@as(i32, @intCast(index)) * lineHeight);
+
+        // Highlight the selected menu item
+        if (index == selectedIndex) {
+            w4.DRAW_COLORS.* = 4; // Different color for highlight
+            w4.rect(startX - 2, yPos - 2, 80, 12);
+        } else {
+            w4.DRAW_COLORS.* = 2; // Default color
+        }
+
+        // Draw the menu text
+        w4.text(item, startX, yPos);
     }
-
-    w4.blit(&smiley, 76, 76, 8, 8, w4.BLIT_1BPP);
-    w4.text("Press X to blink", 16, 90);
 }
