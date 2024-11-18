@@ -30,7 +30,15 @@ const menuItems = [_][]const u8{
 var selectedIndex: usize = 0;
 var prev_state: u8 = 0; // Previous gamepad state
 
-export fn start() void {}
+// https://lospec.com/palette-list/coral-4
+export fn start() void {
+    w4.PALETTE.* = .{
+        0xffd0a4,
+        0xf4949c,
+        0x7c9aac,
+        0x68518a,
+    };
+}
 
 export fn update() void {
     images.person.render(4, 4);
