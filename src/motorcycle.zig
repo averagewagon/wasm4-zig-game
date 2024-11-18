@@ -44,23 +44,24 @@ pub fn handleInput(motorcycle: *Motorcycle) void {
 }
 
 pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
-    // Define an array of 10 (x, y) positions
-    const renderPositions = [_][2]i32{
-        .{ 10, 80 },  .{ 48, 140 }, .{ 56, 140 }, .{ 64, 140 },  .{ 72, 140 },
-        .{ 80, 140 }, .{ 88, 140 }, .{ 96, 140 }, .{ 104, 140 }, .{ 85, 130 },
-    };
+    // Define the three control points (x, y)
+    const P0 = [2]f64{ 20, 80 }; // Left lane
+    const P1 = [2]f64{ 25, 125 }; // Control point (mid-lane, arc shape)
+    const P2 = [2]f64{ 100, 130 }; // Right lane
 
-    // Calculate the array index based on the motorcycle's position
-    const arrayLength = renderPositions.len;
-    var index: usize = @intFromFloat(motorcycle.position * @as(f64, @floatFromInt(arrayLength)));
-    if (index < 0) index = 0;
-    if (index >= arrayLength) index = arrayLength - 1;
+    // Compute position on the Bézier curve
+    const t = motorcycle.position; // Normalized parameter (0 to 1)
+    const oneMinusT = 1.0 - t;
 
-    // Get the x and y coordinates from the array
-    const coords = renderPositions[index];
+    const x = oneMinusT * oneMinusT * P0[0] +
+        2.0 * oneMinusT * t * P1[0] +
+        t * t * P2[0];
+
+    const y = oneMinusT * oneMinusT * P0[1] +
+        2.0 * oneMinusT * t * P1[1] +
+        t * t * P2[1];
 
     // Draw the motorcycle
     w4.DRAW_COLORS.* = 3;
-    // Positioned at (x, y) from the array
-    w4.rect(coords[0], coords[1] - 10, 10, 10);
+    w4.rect(@intFromFloat(x), @intFromFloat(y - 5), 5, 5); // Positioned at (x, y)
 }
