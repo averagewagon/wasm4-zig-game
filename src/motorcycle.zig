@@ -6,7 +6,7 @@ pub const Motorcycle = struct {
         Crashed,
     };
 
-    position: f64 = 0.0, // Lane position: -1.2 to 1.2
+    position: f64 = 0.5, // Lane position: 0 to 1
     state: State = .Normal,
 
     /// Updates the position based on steering direction.
@@ -18,7 +18,7 @@ pub const Motorcycle = struct {
         self.position += direction;
 
         // Check boundaries for a crash
-        if (self.position < -1.2 or self.position > 1.2) {
+        if (self.position < 0.0 or self.position > 1.0) {
             self.state = .Crashed;
             w4.trace("Game Over: Crashed!"); // Log the crash
         }
@@ -26,7 +26,7 @@ pub const Motorcycle = struct {
 
     /// Resets the motorcycle to its initial state.
     pub fn reset(self: *Motorcycle) void {
-        self.position = 0.0;
+        self.position = 0.5;
         self.state = .Normal;
     }
 };
@@ -37,19 +37,30 @@ pub fn handleInput(motorcycle: *Motorcycle) void {
     const gamepad = w4.GAMEPAD1.*;
 
     if (gamepad & w4.BUTTON_LEFT != 0) {
-        motorcycle.steer(-0.1); // Steer left
+        motorcycle.steer(-0.05); // Steer left
     } else if (gamepad & w4.BUTTON_RIGHT != 0) {
-        motorcycle.steer(0.1); // Steer right
+        motorcycle.steer(0.05); // Steer right
     }
 }
 
 pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
-    // Map position (-1.2 to 1.2) to screen X coordinates
-    const centerLaneX = 80; // X position for center lane
-    const laneWidth = 40.0; // Width between lanes
-    const x = centerLaneX + @as(i32, @intFromFloat(motorcycle.position * laneWidth));
+    // Define an array of 10 (x, y) positions
+    const renderPositions = [_][2]i32{
+        .{ 10, 80 },  .{ 48, 140 }, .{ 56, 140 }, .{ 64, 140 },  .{ 72, 140 },
+        .{ 80, 140 }, .{ 88, 140 }, .{ 96, 140 }, .{ 104, 140 }, .{ 85, 130 },
+    };
 
-    // Draw the motorcycle as a rectangle (temporary)
+    // Calculate the array index based on the motorcycle's position
+    const arrayLength = renderPositions.len;
+    var index: usize = @intFromFloat(motorcycle.position * @as(f64, @floatFromInt(arrayLength)));
+    if (index < 0) index = 0;
+    if (index >= arrayLength) index = arrayLength - 1;
+
+    // Get the x and y coordinates from the array
+    const coords = renderPositions[index];
+
+    // Draw the motorcycle
     w4.DRAW_COLORS.* = 3;
-    w4.rect(x, 140, 10, 10); // Positioned near the bottom of the screen
+    // Positioned at (x, y) from the array
+    w4.rect(coords[0], coords[1] - 10, 10, 10);
 }
