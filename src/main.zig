@@ -40,14 +40,84 @@ export fn start() void {
     };
 }
 
+// Global variables to track the rectangle's position
+var rectX: i32 = 160; // Initial X position
+var rectY: i32 = -40; // Initial Y position
+
 export fn update() void {
-    images.person.render(4, 4);
+    drawMovingRectangle();
+
+    drawBackground();
 
     // Handle input for menu navigation
     handleInput();
 
-    // Draw the menu
-    drawMenu();
+    if (selectedIndex == 0) {
+        images.person.render(1, 5);
+    } else if (selectedIndex == 1) {
+        images.person.render(2, 7);
+    } else {
+        images.person.render(4, 8);
+    }
+}
+
+/// Draws and updates the position of the moving rectangle (skyscraper).
+fn drawMovingRectangle() void {
+    // Draw the rectangle
+    w4.DRAW_COLORS.* = 3; // Color for the skyscraper
+    w4.rect(rectX, rectY, 20, 50); // Rectangle of width 20 and height 50
+
+    // Update the rectangle's position
+    rectX -= 2; // Move left
+    rectY += 1; // Move down
+
+    // Reset position if it moves off-screen
+    if (rectX + 20 < 0 or rectY > 160) { // 20 is the width of the rectangle
+        rectX = 160;
+        rectY = -40;
+    }
+}
+
+fn drawBackground() void {
+    w4.DRAW_COLORS.* = 1;
+    for (80..160) |i| {
+        drawSlope(26.6, @intCast(i));
+    }
+
+    // Set the draw color
+    w4.DRAW_COLORS.* = 2; // Use color 2 for the slope
+
+    // Draw the slope line
+    drawSlope(26.6, 80);
+
+    drawSlope(36, 122);
+
+    drawSlope(46.4, 184);
+
+    drawSlope(58.4, 298);
+}
+
+/// Draws a slope starting at a given Y-coordinate with a specific angle.
+/// The slope is drawn until it goes off the canvas.
+fn drawSlope(angleDegrees: f64, startY: i32) void {
+    const canvasWidth: i32 = 160;
+    const canvasHeight: i32 = 160;
+
+    // Convert angle to radians for slope calculation
+    const angleRadians = (180 - angleDegrees) * 0.0174533; // pi/180
+    const slope = @tan(angleRadians); // Rise over run
+
+    // Calculate the end point based on the canvas boundaries
+    var endX: i32 = canvasWidth;
+    var endY: f64 = @as(f64, @floatFromInt(startY)) + slope * @as(f64, @floatFromInt(endX));
+
+    if (endY > canvasHeight) {
+        endX = @intFromFloat((@as(f64, @floatFromInt(canvasHeight)) - @as(f64, @floatFromInt(startY))) / slope);
+        endY = @floatFromInt(canvasHeight);
+    }
+
+    // Draw the line using the w4.line function
+    w4.line(0, startY, endX, @intFromFloat(endY));
 }
 
 /// Handles input for menu navigation.
