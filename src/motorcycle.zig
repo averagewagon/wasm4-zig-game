@@ -45,9 +45,9 @@ pub fn handleInput(motorcycle: *Motorcycle) void {
 
 pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
     // Define the three control points (x, y)
-    const P0 = [2]f64{ 20, 80 }; // Left lane
+    const P0 = [2]f64{ 15, 80 }; // Left lane
     const P1 = [2]f64{ 25, 125 }; // Control point (mid-lane, arc shape)
-    const P2 = [2]f64{ 100, 130 }; // Right lane
+    const P2 = [2]f64{ 95, 140 }; // Right lane
 
     // Compute position on the Bézier curve
     const t = motorcycle.position; // Normalized parameter (0 to 1)

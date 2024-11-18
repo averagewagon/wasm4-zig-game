@@ -25,10 +25,10 @@ var prev_state: u8 = 0; // Previous gamepad state
 // https://lospec.com/palette-list/coral-4
 export fn start() void {
     w4.PALETTE.* = .{
-        0xffd0a4,
-        0xf4949c,
-        0x7c9aac,
         0x68518a,
+        0xf4949c,
+        0xffd0a4,
+        0x7c9aac,
     };
 }
 
@@ -39,9 +39,11 @@ var rectY: i32 = -40; // Initial Y position
 var motorcycle = m.Motorcycle{};
 
 export fn update() void {
+    drawBackground();
+
     drawMovingRectangle();
 
-    drawBackground();
+    drawForeground();
 
     // Handle input for menu navigation
     m.handleInput(&motorcycle);
@@ -67,9 +69,24 @@ fn drawMovingRectangle() void {
 }
 
 fn drawBackground() void {
+    // Draw the background color
     w4.DRAW_COLORS.* = 1;
-    for (80..160) |i| {
+    for (0..297) |i| {
+        drawSlope(58.4, @intCast(i));
+    }
+}
+
+fn drawForeground() void {
+    // Set the road color
+    w4.DRAW_COLORS.* = 4;
+    for (80..300) |i| {
         drawSlope(26.6, @intCast(i));
+    }
+
+    // Draw the foreground color
+    w4.DRAW_COLORS.* = 1;
+    for (298..600) |i| {
+        drawSlope(58.4, @intCast(i));
     }
 
     // Set the draw color
