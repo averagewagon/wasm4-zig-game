@@ -26,6 +26,7 @@ fn Sprite(w: u8, h: u8) type {
         image: [w * 4 * h * 16]u8,
         const Self = @This();
         pub fn render(sprite: *const Self, x: i32, y: i32) void {
+            w4.DRAW_COLORS.* = 0x4321;
             w4.blit(
                 &sprite.image,
                 x,
@@ -40,7 +41,7 @@ fn Sprite(w: u8, h: u8) type {
 
 pub const person = Sprite(1, 2){
     .image = [128]u8{
-        0x1B, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00,
