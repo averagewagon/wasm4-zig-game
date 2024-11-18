@@ -18,16 +18,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 const w4 = @import("wasm4.zig");
-const images = @import("images.zig");
+const m = @import("motorcycle.zig");
 
-// Menu items
-const menuItems = [_][]const u8{
-    "New Game",
-    "Load Game",
-    "Exit",
-};
-
-var selectedIndex: usize = 0;
 var prev_state: u8 = 0; // Previous gamepad state
 
 // https://lospec.com/palette-list/coral-4
@@ -44,21 +36,17 @@ export fn start() void {
 var rectX: i32 = 160; // Initial X position
 var rectY: i32 = -40; // Initial Y position
 
+var motorcycle = m.Motorcycle{};
+
 export fn update() void {
     drawMovingRectangle();
 
     drawBackground();
 
     // Handle input for menu navigation
-    handleInput();
+    m.handleInput(&motorcycle);
 
-    if (selectedIndex == 0) {
-        images.person.render(1, 5);
-    } else if (selectedIndex == 1) {
-        images.person.render(2, 7);
-    } else {
-        images.person.render(4, 8);
-    }
+    m.drawMotorcycle(&motorcycle);
 }
 
 /// Draws and updates the position of the moving rectangle (skyscraper).
@@ -118,52 +106,4 @@ fn drawSlope(angleDegrees: f64, startY: i32) void {
 
     // Draw the line using the w4.line function
     w4.line(0, startY, endX, @intFromFloat(endY));
-}
-
-/// Handles input for menu navigation.
-fn handleInput() void {
-    const gamepad = w4.GAMEPAD1.*;
-    const just_pressed = gamepad & (gamepad ^ prev_state);
-
-    if (just_pressed & w4.BUTTON_UP != 0) {
-        if (selectedIndex == 0) {
-            selectedIndex = menuItems.len - 1;
-        } else {
-            selectedIndex -= 1;
-        }
-    }
-    if (just_pressed & w4.BUTTON_DOWN != 0) {
-        if (selectedIndex == menuItems.len - 1) {
-            selectedIndex = 0;
-        } else {
-            selectedIndex += 1;
-        }
-    }
-
-    prev_state = gamepad;
-}
-
-/// Draws a simple menu with selectable items.
-fn drawMenu() void {
-    const startX: i32 = 20;
-    const startY: i32 = 30;
-    const lineHeight: i32 = 12;
-
-    w4.DRAW_COLORS.* = 2;
-
-    for (menuItems, 0..) |item, index| {
-        const yPos = startY + (@as(i32, @intCast(index)) * lineHeight);
-
-        if (index == selectedIndex) {
-            // Highlight with inverted colors
-            w4.DRAW_COLORS.* = 3; // Invert foreground and background
-            w4.rect(startX - 2, yPos - 2, 80, 12); // Background rectangle
-            w4.DRAW_COLORS.* = 1; // Inverted text color
-        } else {
-            w4.DRAW_COLORS.* = 2; // Default color for text
-        }
-
-        // Draw the menu text
-        w4.text(item, startX, yPos);
-    }
 }
