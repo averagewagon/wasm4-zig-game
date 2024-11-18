@@ -33,15 +33,13 @@ var prev_state: u8 = 0; // Previous gamepad state
 export fn start() void {}
 
 export fn update() void {
-    w4.DRAW_COLORS.* = 2;
+    images.person.render(4, 4);
 
     // Handle input for menu navigation
     handleInput();
 
     // Draw the menu
     drawMenu();
-
-    images.person.render(0, 0);
 }
 
 /// Handles input for menu navigation.
@@ -72,6 +70,8 @@ fn drawMenu() void {
     const startX: i32 = 20;
     const startY: i32 = 30;
     const lineHeight: i32 = 12;
+
+    w4.DRAW_COLORS.* = 2;
 
     for (menuItems, 0..) |item, index| {
         const yPos = startY + (@as(i32, @intCast(index)) * lineHeight);

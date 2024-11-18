@@ -29,8 +29,8 @@ fn Sprite(w: u8, h: u8) type {
             w4.DRAW_COLORS.* = 0x4321;
             w4.blit(
                 &sprite.image,
-                x,
-                y,
+                x * 16 - 8,
+                y * 16 - 8,
                 tile_width * 16,
                 tile_height * 16,
                 w4.BLIT_2BPP,
