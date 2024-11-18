@@ -73,12 +73,13 @@ fn drawMenu() void {
     for (menuItems, 0..) |item, index| {
         const yPos = startY + (@as(i32, @intCast(index)) * lineHeight);
 
-        // Highlight the selected menu item
         if (index == selectedIndex) {
-            w4.DRAW_COLORS.* = 4; // Different color for highlight
-            w4.rect(startX - 2, yPos - 2, 80, 12);
+            // Highlight with inverted colors
+            w4.DRAW_COLORS.* = 3; // Invert foreground and background
+            w4.rect(startX - 2, yPos - 2, 80, 12); // Background rectangle
+            w4.DRAW_COLORS.* = 1; // Inverted text color
         } else {
-            w4.DRAW_COLORS.* = 2; // Default color
+            w4.DRAW_COLORS.* = 2; // Default color for text
         }
 
         // Draw the menu text
