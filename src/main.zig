@@ -18,6 +18,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 const w4 = @import("wasm4.zig");
+const images = @import("images.zig");
 
 // Menu items
 const menuItems = [_][]const u8{
@@ -39,6 +40,8 @@ export fn update() void {
 
     // Draw the menu
     drawMenu();
+
+    images.person.render(0, 0);
 }
 
 /// Handles input for menu navigation.
