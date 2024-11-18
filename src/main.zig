@@ -27,14 +27,41 @@ const menuItems = [_][]const u8{
 };
 
 var selectedIndex: usize = 0;
+var prev_state: u8 = 0; // Previous gamepad state
 
 export fn start() void {}
 
 export fn update() void {
     w4.DRAW_COLORS.* = 2;
 
+    // Handle input for menu navigation
+    handleInput();
+
     // Draw the menu
     drawMenu();
+}
+
+/// Handles input for menu navigation.
+fn handleInput() void {
+    const gamepad = w4.GAMEPAD1.*;
+    const just_pressed = gamepad & (gamepad ^ prev_state);
+
+    if (just_pressed & w4.BUTTON_UP != 0) {
+        if (selectedIndex == 0) {
+            selectedIndex = menuItems.len - 1;
+        } else {
+            selectedIndex -= 1;
+        }
+    }
+    if (just_pressed & w4.BUTTON_DOWN != 0) {
+        if (selectedIndex == menuItems.len - 1) {
+            selectedIndex = 0;
+        } else {
+            selectedIndex += 1;
+        }
+    }
+
+    prev_state = gamepad;
 }
 
 /// Draws a simple menu with selectable items.
