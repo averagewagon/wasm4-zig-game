@@ -6,7 +6,7 @@ pub const Motorcycle = struct {
         Crashed,
     };
 
-    position: f64 = 0.0, // Lane position: -120 to 120 (with boundaries at -120 and 120)
+    position: f64 = 0.0, // Lane position: -1.2 to 1.2
     state: State = .Normal,
 
     /// Updates the position based on steering direction.
@@ -18,7 +18,7 @@ pub const Motorcycle = struct {
         self.position += direction;
 
         // Check boundaries for a crash
-        if (self.position < -120.0 or self.position > 120.0) {
+        if (self.position < -1.2 or self.position > 1.2) {
             self.state = .Crashed;
             w4.trace("Game Over: Crashed!"); // Log the crash
         }
@@ -37,17 +37,17 @@ pub fn handleInput(motorcycle: *Motorcycle) void {
     const gamepad = w4.GAMEPAD1.*;
 
     if (gamepad & w4.BUTTON_LEFT != 0) {
-        motorcycle.steer(-12.0); // Steer left
+        motorcycle.steer(-0.1); // Steer left
     } else if (gamepad & w4.BUTTON_RIGHT != 0) {
-        motorcycle.steer(12.0); // Steer right
+        motorcycle.steer(0.1); // Steer right
     }
 }
 
 pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
-    // Map position (-120 to 120) to screen X coordinates
+    // Map position (-1.2 to 1.2) to screen X coordinates
     const centerLaneX = 80; // X position for center lane
-    const laneWidth = 40.0; // Width between lanes in the new range
-    const x = centerLaneX + @as(i32, @intFromFloat(motorcycle.position * (laneWidth / 120.0)));
+    const laneWidth = 40.0; // Width between lanes
+    const x = centerLaneX + @as(i32, @intFromFloat(motorcycle.position * laneWidth));
 
     // Draw the motorcycle as a rectangle (temporary)
     w4.DRAW_COLORS.* = 3;
