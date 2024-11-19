@@ -26,11 +26,17 @@ var prev_state: u8 = 0; // Previous gamepad state
 export fn start() void {
     w4.PALETTE.* = .{
         0x222323, // Black
+        // 0xf0f6f0, // White (commented out until dithering implemented)
+        0xA0A6A0, // Temporary Gray
         0xff4adc, // Pink
         0x3dff98, // Green
-        0xf0f6f0, // White
     };
 }
+
+const C_BLACK = 1;
+const C_WHITE = 2;
+const C_PINK = 3;
+const C_GREEN = 4;
 
 // Global variables to track the rectangle's position
 var rectX: i32 = 160; // Initial X position
@@ -59,7 +65,7 @@ export fn update() void {
 /// Draws and updates the position of the moving rectangle (skyscraper).
 fn drawMovingRectangle() void {
     // Draw the rectangle
-    w4.DRAW_COLORS.* = 3; // Color for the skyscraper
+    w4.DRAW_COLORS.* = C_PINK; // Color for the skyscraper
     w4.rect(rectX, rectY, 20, 50); // Rectangle of width 20 and height 50
 
     // Update the rectangle's position
@@ -75,7 +81,7 @@ fn drawMovingRectangle() void {
 
 fn drawBackground() void {
     // Draw the background color
-    w4.DRAW_COLORS.* = 1;
+    w4.DRAW_COLORS.* = C_BLACK;
     for (0..297) |i| {
         drawSlope(58.4, @intCast(i));
     }
@@ -83,19 +89,19 @@ fn drawBackground() void {
 
 fn drawForeground() void {
     // Set the road color
-    w4.DRAW_COLORS.* = 4;
+    w4.DRAW_COLORS.* = C_WHITE;
     for (80..300) |i| {
         drawSlope(26.6, @intCast(i));
     }
 
     // Draw the foreground color
-    w4.DRAW_COLORS.* = 1;
+    w4.DRAW_COLORS.* = C_BLACK;
     for (298..600) |i| {
         drawSlope(58.4, @intCast(i));
     }
 
     // Set the draw color
-    w4.DRAW_COLORS.* = 2; // Use color 2 for the slope
+    w4.DRAW_COLORS.* = C_GREEN; // Use color 2 for the slope
 
     // Draw the slope line
     drawSlope(26.6, 80);

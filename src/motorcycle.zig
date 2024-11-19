@@ -85,7 +85,7 @@ pub fn renderMotorcycle(motorcycle: *Motorcycle) void {
         t * t * P2[1];
 
     // Determine lane based on position
-    const laneIndex: usize = if (motorcycle.position < 0.3) 0 else if (motorcycle.position < 0.7) 1 else 2;
+    const laneIndex: usize = if (motorcycle.position < 0.3) 0 else if (motorcycle.position < 0.75) 1 else 2;
 
     // Determine turning state based on velocity
     const turningIndex: usize = if (motorcycle.velocity < -0.5) 0 else if (motorcycle.velocity > 0.5) 2 else 1;
