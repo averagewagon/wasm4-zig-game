@@ -68,7 +68,7 @@ pub fn handleInput() f64 {
 
 pub fn renderMotorcycle(motorcycle: *Motorcycle) void {
     // Define the three control points (x, y)
-    const P0 = [2]f64{ 15, 80 }; // Left lane
+    const P0 = [2]f64{ 18, 80 }; // Left lane
     const P1 = [2]f64{ 25, 125 }; // Control point (mid-lane, arc shape)
     const P2 = [2]f64{ 90, 150 }; // Right lane
 
