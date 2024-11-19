@@ -45,9 +45,14 @@ export fn update() void {
 
     drawForeground();
 
-    // Handle input for menu navigation
-    m.handleInput(&motorcycle);
+    // Delta time (assuming fixed time step for simplicity)
+    const deltaTime = 1.0 / 60.0;
 
+    // Handle input and update the motorcycle
+    const input = m.handleInput();
+    motorcycle.update(input, deltaTime);
+
+    // Draw the motorcycle
     m.drawMotorcycle(&motorcycle);
 }
 
