@@ -19,19 +19,9 @@
 
 const w4 = @import("wasm4.zig");
 const m = @import("motorcycle.zig");
+const o = @import("obstacles.zig");
 
 var prev_state: u8 = 0; // Previous gamepad state
-
-// https://lospec.com/palette-list/coral-4
-export fn start() void {
-    w4.PALETTE.* = .{
-        0x222323, // Black
-        // 0xf0f6f0, // White (commented out until dithering implemented)
-        0xA0A6A0, // Temporary Gray
-        0xff4adc, // Pink
-        0x3dff98, // Green
-    };
-}
 
 const C_BLACK = 1;
 const C_WHITE = 2;
@@ -42,7 +32,23 @@ const C_GREEN = 4;
 var rectX: i32 = 160; // Initial X position
 var rectY: i32 = -40; // Initial Y position
 
+// Time accumulator for obstacle spawning
+var obstacleSpawnTimer: f64 = 0.0;
+
 var motorcycle = m.Motorcycle{};
+var obstacleManager = o.ObstacleManager.init();
+
+export fn start() void {
+    w4.PALETTE.* = .{
+        0x222323, // Black
+        0xA0A6A0, // Temporary Gray
+        0xff4adc, // Pink
+        0x3dff98, // Green
+    };
+
+    // // Initialize the obstacle manager
+    // obstacleManager.init();
+}
 
 export fn update() void {
     drawBackground();
@@ -58,8 +64,66 @@ export fn update() void {
     const input = m.handleInput();
     motorcycle.update(input, deltaTime);
 
+    // Spawn obstacles at regular intervals
+    obstacleSpawnTimer += deltaTime;
+    if (obstacleSpawnTimer >= 1.0) { // Spawn every 1 second
+        obstacleSpawnTimer = 0.0;
+        obstacleManager.spawn(.Car, // Obstacle type (e.g., Car)
+            160.0, // Starting X position (off-screen)
+            0.0, // Starting Y position (top-right)
+            -30.0, // Velocity X (moving left)
+            20.0 // Velocity Y (moving down)
+        );
+    }
+
+    // Update obstacles
+    obstacleManager.update(deltaTime);
+
     // Draw the motorcycle
     m.renderMotorcycle(&motorcycle);
+
+    // Render obstacles
+    renderObstacles();
+
+    // Collision detection
+    checkCollisions();
+}
+
+/// Render all active obstacles
+fn renderObstacles() void {
+    for (&obstacleManager.obstacles) |*obstacle| {
+        if (obstacle.*) |activeObstacle| {
+            // Placeholder: Draw obstacle as a rectangle for now
+            w4.DRAW_COLORS.* = C_GREEN;
+            w4.rect(@intFromFloat(activeObstacle.position[0]), @intFromFloat(activeObstacle.position[1]), 16, 16);
+        }
+    }
+}
+
+/// Check for collisions between the motorcycle and obstacles
+fn checkCollisions() void {
+    const motorcycleHitbox = [4]i32{
+        // Example hitbox for motorcycle (adjust as needed)
+        @as(i32, @intFromFloat(motorcycle.position * 160)) - 8,
+        140 - 8,
+        16,
+        16,
+    };
+
+    for (&obstacleManager.obstacles) |*obstacle| {
+        if (obstacle.*) |activeObstacle| {
+            if (activeObstacle.state and rectsOverlap(activeObstacle.hitbox, motorcycleHitbox)) {
+                motorcycle.state = .Crashed;
+                w4.trace("Game Over: Collision detected!");
+                return;
+            }
+        }
+    }
+}
+
+/// Simple rectangle overlap check
+fn rectsOverlap(a: [4]i32, b: [4]i32) bool {
+    return a[0] < b[0] + b[2] and a[0] + a[2] > b[0] and a[1] < b[1] + b[3] and a[1] + a[3] > b[1];
 }
 
 /// Draws and updates the position of the moving rectangle (skyscraper).
