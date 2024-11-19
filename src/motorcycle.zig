@@ -1,4 +1,5 @@
 const w4 = @import("wasm4.zig");
+const s = @import("sprites.zig");
 
 pub const Motorcycle = struct {
     pub const State = enum {
@@ -65,7 +66,7 @@ pub fn handleInput() f64 {
     return 0.0; // No input
 }
 
-pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
+pub fn renderMotorcycle(motorcycle: *Motorcycle) void {
     // Define the three control points (x, y)
     const P0 = [2]f64{ 15, 80 }; // Left lane
     const P1 = [2]f64{ 25, 125 }; // Control point (mid-lane, arc shape)
@@ -83,7 +84,18 @@ pub fn drawMotorcycle(motorcycle: *Motorcycle) void {
         2.0 * oneMinusT * t * P1[1] +
         t * t * P2[1];
 
-    // Draw the motorcycle
-    w4.DRAW_COLORS.* = 3;
-    w4.rect(@intFromFloat(x - 5), @intFromFloat(y - 5), 10, 10);
+    // Determine lane based on position
+    const laneIndex: usize = if (motorcycle.position < 0.3) 0 else if (motorcycle.position < 0.7) 1 else 2;
+
+    // Determine turning state based on velocity
+    const turningIndex: usize = if (motorcycle.velocity < -0.5) 0 else if (motorcycle.velocity > 0.5) 2 else 1;
+
+    // Compute sprite index
+    const spriteIndex = laneIndex * 3 + turningIndex;
+
+    // Retrieve the appropriate sprite
+    const sprite = &s.motorcycleSprites[spriteIndex];
+
+    // Render the sprite using the anchor-based helper function
+    s.drawSpriteAtAnchor(sprite, @intFromFloat(x), @intFromFloat(y));
 }

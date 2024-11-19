@@ -25,10 +25,10 @@ var prev_state: u8 = 0; // Previous gamepad state
 // https://lospec.com/palette-list/coral-4
 export fn start() void {
     w4.PALETTE.* = .{
-        0x68518a,
-        0xf4949c,
-        0xffd0a4,
-        0x7c9aac,
+        0x222323, // Black
+        0xff4adc, // Pink
+        0x3dff98, // Green
+        0xf0f6f0, // White
     };
 }
 
@@ -53,7 +53,7 @@ export fn update() void {
     motorcycle.update(input, deltaTime);
 
     // Draw the motorcycle
-    m.drawMotorcycle(&motorcycle);
+    m.renderMotorcycle(&motorcycle);
 }
 
 /// Draws and updates the position of the moving rectangle (skyscraper).
