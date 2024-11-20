@@ -45,9 +45,6 @@ export fn start() void {
         0xff4adc, // Pink
         0x3dff98, // Green
     };
-
-    // // Initialize the obstacle manager
-    // obstacleManager.init();
 }
 
 export fn update() void {
@@ -57,32 +54,22 @@ export fn update() void {
 
     drawForeground();
 
-    // Delta time (assuming fixed time step for simplicity)
     const deltaTime = 1.0 / 60.0;
 
-    // Handle input and update the motorcycle
     const input = m.handleInput();
     motorcycle.update(input, deltaTime);
 
-    // Spawn obstacles at regular intervals
+    // Spawn obstacles
     obstacleSpawnTimer += deltaTime;
-    if (obstacleSpawnTimer >= 1.0) { // Spawn every 1 second
+    if (obstacleSpawnTimer >= 1.0) {
         obstacleSpawnTimer = 0.0;
-        obstacleManager.spawn(.Car, // Obstacle type (e.g., Car)
-            160.0, // Starting X position (off-screen)
-            0.0, // Starting Y position (top-right)
-            -30.0, // Velocity X (moving left)
-            20.0 // Velocity Y (moving down)
-        );
+        obstacleManager.spawn(.Car, 160.0, 0.0, -30.0, 20.0);
     }
 
-    // Update obstacles
     obstacleManager.update(deltaTime);
 
-    // Draw the motorcycle
     m.renderMotorcycle(&motorcycle);
 
-    // Render obstacles
     renderObstacles();
 
     // Collision detection
@@ -95,35 +82,37 @@ fn renderObstacles() void {
         if (obstacle.*) |activeObstacle| {
             // Placeholder: Draw obstacle as a rectangle for now
             w4.DRAW_COLORS.* = C_GREEN;
-            w4.rect(@intFromFloat(activeObstacle.position[0]), @intFromFloat(activeObstacle.position[1]), 16, 16);
+            w4.rect(
+                @intFromFloat(activeObstacle.position[0]),
+                @intFromFloat(activeObstacle.position[1]),
+                16,
+                16,
+            );
         }
     }
 }
 
-/// Check for collisions between the motorcycle and obstacles
+/// Helper function to check if two rectangles overlap
+fn rectsOverlap(a: [4]i32, b: [4]i32) bool {
+    return a[0] < b[0] + b[2] and a[0] + a[2] > b[0] and
+        a[1] < b[1] + b[3] and a[1] + a[3] > b[1];
+}
+
 fn checkCollisions() void {
-    const motorcycleHitbox = [4]i32{
-        // Example hitbox for motorcycle (adjust as needed)
-        @as(i32, @intFromFloat(motorcycle.position * 160)) - 8,
-        140 - 8,
-        16,
-        16,
-    };
+    const motorcycleHitbox = motorcycle.getHitbox();
 
     for (&obstacleManager.obstacles) |*obstacle| {
-        if (obstacle.*) |activeObstacle| {
-            if (activeObstacle.state and rectsOverlap(activeObstacle.hitbox, motorcycleHitbox)) {
+        if (obstacle.*) |*activeObstacle| {
+            activeObstacle.hitbox[0] = @intFromFloat(activeObstacle.position[0]);
+            activeObstacle.hitbox[1] = @intFromFloat(activeObstacle.position[1]);
+
+            if (rectsOverlap(motorcycleHitbox, activeObstacle.hitbox)) {
                 motorcycle.state = .Crashed;
                 w4.trace("Game Over: Collision detected!");
                 return;
             }
         }
     }
-}
-
-/// Simple rectangle overlap check
-fn rectsOverlap(a: [4]i32, b: [4]i32) bool {
-    return a[0] < b[0] + b[2] and a[0] + a[2] > b[0] and a[1] < b[1] + b[3] and a[1] + a[3] > b[1];
 }
 
 /// Draws and updates the position of the moving rectangle (skyscraper).
