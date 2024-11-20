@@ -84,6 +84,11 @@ pub const Motorcycle = struct {
             16, // Height
         };
     }
+
+    /// Checks if the motorcycle is in a crashed state
+    pub fn isCrashed(self: *Motorcycle) bool {
+        return self.state == .Crashed;
+    }
 };
 
 pub fn handleInput() f64 {

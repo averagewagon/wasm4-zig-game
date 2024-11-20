@@ -21,6 +21,13 @@ const w4 = @import("wasm4.zig");
 const m = @import("motorcycle.zig");
 const o = @import("obstacles.zig");
 
+const GameState = enum {
+    Playing,
+    Lost,
+};
+
+var currentState: GameState = .Playing;
+
 var prev_state: u8 = 0; // Previous gamepad state
 
 const C_BLACK = 1;
@@ -48,32 +55,64 @@ export fn start() void {
 }
 
 export fn update() void {
-    drawBackground();
+    switch (currentState) {
+        .Playing => {
+            drawBackground();
 
-    drawMovingRectangle();
+            drawMovingRectangle();
 
-    drawForeground();
+            drawForeground();
 
-    const deltaTime = 1.0 / 60.0;
+            const deltaTime = 1.0 / 60.0;
 
-    const input = m.handleInput();
-    motorcycle.update(input, deltaTime);
+            const input = m.handleInput();
+            motorcycle.update(input, deltaTime);
 
-    // Spawn obstacles
-    obstacleSpawnTimer += deltaTime;
-    if (obstacleSpawnTimer >= 1.0) {
-        obstacleSpawnTimer = 0.0;
-        obstacleManager.spawn(.Car, 160.0, 0.0, -30.0, 20.0);
+            // Check if the motorcycle has crashed
+            if (motorcycle.isCrashed()) {
+                currentState = .Lost;
+                return;
+            }
+
+            // Spawn obstacles
+            obstacleSpawnTimer += deltaTime;
+            if (obstacleSpawnTimer >= 1.0) {
+                obstacleSpawnTimer = 0.0;
+                obstacleManager.spawn(.Car, 160.0, 0.0, -30.0, 20.0);
+            }
+
+            obstacleManager.update(deltaTime);
+
+            m.renderMotorcycle(&motorcycle);
+
+            renderObstacles();
+
+            // Collision detection
+            checkCollisions();
+        },
+        .Lost => {
+            renderLostScreen();
+        },
     }
+}
 
-    obstacleManager.update(deltaTime);
+fn renderLostScreen() void {
+    w4.DRAW_COLORS.* = C_WHITE; // White text
+    w4.text("YOU CRASHED!", 10, 70);
+    w4.text("PRESS \x81 TO RESTART", 10, 90);
 
-    m.renderMotorcycle(&motorcycle);
+    // Handle input to restart the game
+    const gamepad = w4.GAMEPAD1.*;
+    if (gamepad & w4.BUTTON_2 != 0) { // Assuming BUTTON_2 is mapped to Restart
+        restartGame();
+    }
+}
 
-    renderObstacles();
-
-    // Collision detection
-    checkCollisions();
+fn restartGame() void {
+    currentState = .Playing;
+    motorcycle.reset();
+    obstacleManager = o.ObstacleManager.init(); // Reinitialize the obstacle manager
+    obstacleSpawnTimer = 0.0;
 }
 
 /// Render all active obstacles
@@ -107,7 +146,7 @@ fn checkCollisions() void {
             activeObstacle.hitbox[1] = @intFromFloat(activeObstacle.position[1]);
 
             if (rectsOverlap(motorcycleHitbox, activeObstacle.hitbox)) {
-                motorcycle.state = .Crashed;
+                currentState = .Lost; // Update the game state to Lost
                 w4.trace("Game Over: Collision detected!");
                 return;
             }
