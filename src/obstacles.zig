@@ -18,7 +18,7 @@ pub const Obstacle = struct {
     pub fn init(self: *Obstacle, kind: Kind, x: f64, y: f64, dx: f64, dy: f64) void {
         self.position = [2]f64{ x, y };
         self.velocity = [2]f64{ dx, dy };
-        self.hitbox = [4]i32{ 0, 0, 16, 16 }; // Placeholder hitbox size
+        self.hitbox = [4]i32{ 0, 0, 20, 20 }; // Placeholder hitbox size
         self.state = true;
         self.kind = kind;
     }
@@ -47,14 +47,30 @@ pub const ObstacleManager = struct {
         };
     }
 
-    /// Spawn a new obstacle in the first available slot
-    pub fn spawn(self: *ObstacleManager, kind: Obstacle.Kind, x: f64, y: f64, dx: f64, dy: f64) void {
+    /// Spawn a new obstacle with velocity determined by a slope
+    /// - `kind`: The type of obstacle (e.g., Car, Barrel).
+    /// - `x`, `y`: Starting position of the obstacle.
+    /// - `slopeDegrees`: Angle of the slope in degrees.
+    /// - `speedMultiplier`: Multiplies the base speed of the obstacle.
+    pub fn spawnWithSlope(
+        self: *ObstacleManager,
+        kind: Obstacle.Kind,
+        x: f64,
+        y: f64,
+        slopeDegrees: f64,
+        speedMultiplier: f64,
+    ) void {
         for (&self.obstacles) |*obstacle| {
             if (obstacle.* == null) {
+                const slopeRadians = slopeDegrees * 0.0174533; // Convert degrees to radians
+                const baseSpeed = 30.0; // Default base speed
+                const dx = -baseSpeed * speedMultiplier * @cos(slopeRadians); // X velocity
+                const dy = baseSpeed * speedMultiplier * @sin(slopeRadians); // Y velocity
+
                 obstacle.* = Obstacle{
                     .position = .{ x, y },
                     .velocity = .{ dx, dy },
-                    .hitbox = .{ 0, 0, 16, 16 }, // Default hitbox size
+                    .hitbox = .{ 0, 0, 20, 20 }, // Default hitbox size
                     .state = true,
                     .kind = kind,
                 };

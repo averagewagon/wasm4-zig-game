@@ -20,11 +20,15 @@
 const w4 = @import("wasm4.zig");
 const m = @import("motorcycle.zig");
 const o = @import("obstacles.zig");
+const std = @import("std");
 
 const GameState = enum {
     Playing,
     Lost,
 };
+
+var prng: std.rand.DefaultPrng = undefined; // PRNG instance
+var random: std.rand.Random = undefined; // Random number generator instance
 
 var currentState: GameState = .Playing;
 
@@ -52,7 +56,17 @@ export fn start() void {
         0xff4adc, // Pink
         0x3dff98, // Green
     };
+
+    // Initialize PRNG
+    prng = std.rand.DefaultPrng.init(0); // Seed with 0 for now
+    random = prng.random();
 }
+
+const slopes = [_]f64{
+    28.0, // Left slope
+    40.0, // Center slope
+    55.0, // Right slope
+};
 
 export fn update() void {
     switch (currentState) {
@@ -76,9 +90,18 @@ export fn update() void {
 
             // Spawn obstacles
             obstacleSpawnTimer += deltaTime;
-            if (obstacleSpawnTimer >= 1.0) {
+            if (obstacleSpawnTimer >= 0.5) {
                 obstacleSpawnTimer = 0.0;
-                obstacleManager.spawn(.Car, 160.0, 0.0, -30.0, 20.0);
+
+                // Randomly select a slope
+                const randomSlope = slopes[randomInt(0, slopes.len - 1)];
+
+                obstacleManager.spawnWithSlope(.Car, // Obstacle type
+                    160.0, // Starting X position
+                    0.0, // Starting Y position
+                    randomSlope, // Slope angle (degrees)
+                    8 // Speed multiplier
+                );
             }
 
             obstacleManager.update(deltaTime);
@@ -94,6 +117,15 @@ export fn update() void {
             renderLostScreen();
         },
     }
+}
+
+fn randomInt(min: usize, max: usize) usize {
+    // Ensure max is inclusive
+    return @intCast(random.intRangeLessThan(
+        i32,
+        @as(i32, @intCast(min)),
+        @as(i32, @intCast(max + 1)),
+    ));
 }
 
 fn renderLostScreen() void {
@@ -120,12 +152,12 @@ fn renderObstacles() void {
     for (&obstacleManager.obstacles) |*obstacle| {
         if (obstacle.*) |activeObstacle| {
             // Placeholder: Draw obstacle as a rectangle for now
-            w4.DRAW_COLORS.* = C_GREEN;
-            w4.rect(
+            w4.DRAW_COLORS.* = C_PINK;
+            w4.oval(
                 @intFromFloat(activeObstacle.position[0]),
                 @intFromFloat(activeObstacle.position[1]),
-                16,
-                16,
+                20,
+                20,
             );
         }
     }

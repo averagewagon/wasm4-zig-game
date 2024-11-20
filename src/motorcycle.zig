@@ -76,12 +76,12 @@ pub const Motorcycle = struct {
         const x: i32 = @intFromFloat(position[0]);
         const y: i32 = @intFromFloat(position[1]);
 
-        // Centered 16x16 hitbox
+        // Adjust hitbox: smaller size and offset
         return .{
-            x - 8, // Top-left X
-            y - 8, // Top-left Y
-            16, // Width
-            16, // Height
+            x - 3, // Move left by 6 pixels
+            y - 16, // Move up by 6 pixels
+            12, // Reduced width
+            12, // Reduced height
         };
     }
 
@@ -120,4 +120,9 @@ pub fn renderMotorcycle(motorcycle: *Motorcycle) void {
 
     // Render the sprite using the anchor-based helper function
     s.drawSpriteAtAnchor(sprite, x, y);
+
+    // Render the hitbox for debugging
+    // const hitbox = motorcycle.getHitbox();
+    // w4.DRAW_COLORS.* = 4; // Debug color for hitbox
+    // w4.rect(hitbox[0], hitbox[1], @intCast(hitbox[2]), @intCast(hitbox[3]));
 }
